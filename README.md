@@ -11,18 +11,18 @@ Content-moderator-image/
 │-- backend/
 │   ├── main.py  # FastAPI backend
 │   ├── start.sh  # Backend start script
-│   ├── requirements.txt  # Dependencies
+│   └── requirements.txt  # Dependencies
 │
 │-- frontend/
 │   ├── frontend.py  # Streamlit frontend
 │   ├── start_frontend.sh  # Frontend start script
-│   ├── requirements.txt  # Dependencies
+│   └── requirements.txt  # Dependencies
 │
 │-- models/
-│   ├── Modelfile  # Ollama model configuration
+│   └── Modelfile  # Ollama model configuration
 │
 │-- docker/
-│   ├── Dockerfile  # Docker build instructions
+│   └── Dockerfile  # Docker build instructions
 │
 │-- start_services.sh  # Master startup script
 │-- docker-compose.yml  # Docker Compose configuration
@@ -97,7 +97,7 @@ sleep 10
 echo "📥 Pulling base model..."
 ollama pull wizardlm2:7b
 
-echo "🛠 Creating custom moderation model..."
+echo "🫠 Creating custom moderation model..."
 ollama create cyber-moderator-Wlm:7b -f /app/models/Modelfile
 
 echo "🚀 Starting Backend..."
