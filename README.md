@@ -63,7 +63,7 @@ nano Modelfile
 Inside the `Modelfile`, define your model configuration:
 
 ```dockerfile
-# Ollama Model Configuration File
+# Ollama Model Configuration File use any ollama model based on your resourec and preference
 FROM wizardlm2:7b
 SYSTEM "Cybersecurity content moderation model"
 PARAMETER "temperature" 0.7
@@ -210,7 +210,7 @@ To stop:
 ```bash
 docker-compose down
 ```
-### **3. frontend  Configuration (`start_services.sh`)**
+### **3.1. frontend  Configuration (`start_services.sh`)**
 ```sh
 #!/bin/bash
 
@@ -235,7 +235,7 @@ bash /app/frontend/start_frontend.sh
 
 ```
 
-### **4. frontend  Configuration (`start_frontend.sh`)**
+### **3.2. frontend  Configuration (`start_frontend.sh`)**
 ```sh
 #!/bin/bash
 
@@ -245,7 +245,7 @@ streamlit run frontend.py --server.port 8501 --server.address 0.0.0.0
 
 ```
 
-### **5. backend  Configuration (`start.sh`)**
+### **3.3. backend  Configuration (`start.sh`)**
 ```sh
 #!/bin/bash
 
@@ -257,7 +257,7 @@ uvicorn backend:app --host 0.0.0.0 --port 8000 --reload
 
 ```
 
-### **6. Build and Run the Docker Container**
+### **4. Build and Run the Docker Container**
 ```bash
 docker-compose up --build
 ```
@@ -266,7 +266,7 @@ To stop:
 docker-compose down
 ```
 
-### **7. workflow  Configuration (`docker-build.yml`)**
+### **5. workflow  Configuration (`docker-build.yml`)**
 ```yaml
 name: Build and Push Docker Image
 
@@ -334,7 +334,7 @@ jobs:
 
 ## **Output Screenshots**
 ### Backend Processing Output
-![Backend Running](Content-moderator-image/images/code.png)
+![Backend Running](images/code.png)
 
 ### Streamlit Moderation Interface Output
 ![Streamlit UI Output](images/site-streamlit-out.png)
