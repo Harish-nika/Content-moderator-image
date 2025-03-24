@@ -39,7 +39,7 @@ jobs:
 
     - name: Build Docker Image (Using Correct Dockerfile Path)
       run: |
-        docker build -t harishkumarthesde/content-moderator:latest -f docker/Dockerfile ..
+        docker build -t harishkumarthesde/content-moderator:latest -f Dockerfile .
         docker tag harishkumarthesde/content-moderator:latest harishkumarthesde/content-moderator:${{ env.NEW_TAG }}
 
     - name: Push Docker Image
@@ -49,7 +49,7 @@ jobs:
 
     - name: Push New Git Tag
       run: |
-        git config --global user.email  "harishkumar56278@gmail.com"
+        git config --global user.email "harishkumar56278@gmail.com"
         git config --global user.name "harish-nika"
         git tag ${{ env.NEW_TAG }}
         git push origin ${{ env.NEW_TAG }}
