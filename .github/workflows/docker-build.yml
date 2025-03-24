@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+    tags:
+      - 'v*'  # Trigger build only when a version tag like v1.0.1 is pushed to main
+  workflow_dispatch:  # Allow manual trigger
 
 jobs:
   build-and-push:
@@ -45,7 +45,8 @@ jobs:
         docker push harishkumarthesde/content-moderator:latest
         docker push harishkumarthesde/content-moderator:${{ env.NEW_TAG }}
 
-    - name: Push New Git Tag
+    - name: Push New Git Tag (Only if Pushed to Main)
+      if: github.ref == 'refs/heads/main'
       run: |
         git config --global user.email "harishkumar56278@gmail.com"
         git config --global user.name "harish-nika"
@@ -54,4 +55,3 @@ jobs:
         git push origin ${{ env.NEW_TAG }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub’s built-in token
-   # Use the GitHub token for authentication
