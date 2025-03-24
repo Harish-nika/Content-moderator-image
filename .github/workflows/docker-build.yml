@@ -49,7 +49,9 @@ jobs:
       run: |
         git config --global user.email "harishkumar56278@gmail.com"
         git config --global user.name "harish-nika"
+        git fetch --tags
         git tag ${{ env.NEW_TAG }}
         git push origin ${{ env.NEW_TAG }}
       env:
-        GITHUB_TOKEN: ${{ secrets.MY_PAT_TOKEN }}    # Use the GitHub token for authentication
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub’s built-in token
+   # Use the GitHub token for authentication
