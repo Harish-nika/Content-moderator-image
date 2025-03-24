@@ -1,5 +1,12 @@
 fastapi
 uvicorn
+sentence-transformers
+faiss-cpu
+numpy
+pymupdf
+ollama
+fastapi
+uvicorn
 faiss-cpu
 ollama
 pymupdf
