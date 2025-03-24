@@ -5,15 +5,14 @@ FROM python:3.10
 WORKDIR /app
 
 # Copy only the requirements files first to leverage Docker layer caching
-COPY backend/requirements.txt frontend/requirements.txt ./
+COPY ../backend/requirements.txt ../frontend/requirements.txt ./
 
 # Ensure the file is correctly copied
-RUN ls -l backend/requirements.txt || echo "backend/requirements.txt not found!"
-RUN ls -l frontend/requirements.txt || echo "frontend/requirements.txt not found!"
+RUN ls -l requirements.txt || echo "requirements.txt not found!"
 
 # Install dependencies
-RUN pip install --no-cache-dir -r backend/requirements.txt
-RUN pip install --no-cache-dir -r frontend/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Now copy the entire application AFTER installing dependencies
 COPY . .
