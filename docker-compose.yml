@@ -1,0 +1,26 @@
+version: "1.2"
+
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - ollama
+    entrypoint: ["/bin/bash", "start_services.sh"]
+
+  frontend:
+    build: .
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    entrypoint: ["/bin/bash", "start_services.sh"]
+
+  ollama:
+    image: ollama/ollama
+    restart: always
+    ports:
+      - "11434:11434"
