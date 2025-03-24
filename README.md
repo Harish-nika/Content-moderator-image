@@ -1,9 +1,100 @@
-# Content Moderator - Containerization Guide
+# Cybersecurity Content Moderator
 
 ## Overview
-This guide explains how the **Content Moderator** application is containerized using Docker and how to pull and execute it from Docker Hub.
+This project is a **Cybersecurity Content Moderator** that uses an **Ollama LLM model** (`cyber-moderator-G3:27b`) to detect and classify harmful content. It integrates **FastAPI** for the backend and **Streamlit** for the frontend, with **FAISS** for efficient similarity search.
 
 ---
+
+## Features
+- **Text & PDF Moderation**: Supports both plain text and PDF files.
+- **AI-Powered Content Analysis**: Uses a custom-trained Ollama model.
+- **Semantic Search**: Retrieves similar content using **FAISS** and **Sentence Transformers**.
+- **User-Friendly UI**: Built with Streamlit.
+
+---
+
+## Installation (Without Containerization)
+
+### Prerequisites
+Ensure you have the following installed:
+- Python 3.10+
+- Ollama installed and running
+- GPU support for model inference (recommended)
+
+### Clone the Repository
+```bash
+git clone https://github.com/your-repo/cybersecurity_moderator.git
+cd cybersecurity_moderator/codes
+```
+
+### Create a Virtual Environment
+```bash
+python -m venv gpuenv
+source gpuenv/bin/activate  # On Linux/macOS
+gpuenv\Scripts\activate  # On Windows
+```
+
+### Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Model Setup (Ollama)
+
+### 1️⃣ Create and Configure the Ollama Model File
+Navigate to the `modelfiles` directory and create an Ollama `Modelfile`:
+
+```bash
+cd /home/harish/workspace_dc/cybersecurity_moderator/modelfiles/
+nano Modelfile
+```
+
+Inside the `Modelfile`, define your model configuration:
+
+```plaintext
+# Ollama Model Configuration File
+FROM llama3.3:70b
+SYSTEM "Cybersecurity content moderation model"
+PARAMETER "temperature" 0.7
+PARAMETER "top_p" 0.9
+```
+
+Save and exit (`Ctrl + X`, then `Y`, and `Enter`).
+
+### 2️⃣ Build the Ollama Model
+```bash
+ollama create cyber-moderator-G3:27b -f /home/harish/workspace_dc/cybersecurity_moderator/modelfiles/Modelfile
+```
+
+### 3️⃣ Verify the Model
+```bash
+ollama list
+```
+
+### 4️⃣ Start Using the Model
+```bash
+ollama run cyber-moderator-G3:27b "Analyze this message for harmful content."
+```
+
+---
+
+## Running the Application (Without Containerization)
+
+### Start the Backend (FastAPI)
+```bash
+uvicorn backend:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### Start the Frontend (Streamlit)
+```bash
+streamlit run frontend.py
+```
+
+---
+
+# Content Moderator - Containerization Guide
 
 ## Project Structure
 ```
@@ -33,33 +124,19 @@ Content-moderator-image/
 ## Containerization Process
 ### **1. Dockerfile**
 ```dockerfile
-# Use official Python image
 FROM python:3.10
-
-# Set the working directory inside the container
 WORKDIR /app
-
-# Copy application files
 COPY . .
-
-# Install dependencies
 RUN pip install --no-cache-dir -r backend/requirements.txt
 RUN pip install --no-cache-dir -r frontend/requirements.txt
-
-# Install Ollama
 RUN curl -fsSL https://ollama.com/install.sh | sh
-
-# Expose necessary ports
 EXPOSE 8000 8501
-
-# Run startup script
 CMD ["/bin/bash", "start_services.sh"]
 ```
 
 ### **2. Docker Compose Configuration (`docker-compose.yml`)**
 ```yaml
 version: "1.1"
-
 services:
   backend:
     build: .
@@ -84,113 +161,48 @@ services:
       - "11434:11434"
 ```
 
-### **3. Startup Script (`start_services.sh`)**
+### **3. Build and Run the Docker Container**
 ```bash
-#!/bin/bash
-
-echo "🔄 Starting Ollama server..."
-ollama serve &
-
-# Wait for Ollama to start
-sleep 10
-
-echo "📥 Pulling base model..."
-ollama pull wizardlm2:7b
-
-echo "🫠 Creating custom moderation model..."
-ollama create cyber-moderator-Wlm:7b -f /app/models/Modelfile
-
-echo "🚀 Starting Backend..."
-bash /app/backend/start.sh &
-
-echo "🎨 Starting Frontend..."
-bash /app/frontend/start_frontend.sh
-```
-
----
-
-## **Building and Running the Docker Container**
-
-### **1. Build the Docker Image**
-Run the following command inside the project directory:
-```sh
 docker build -t harishkumarthesde/content-moderator:latest .
-```
-
-### **2. Verify Image is Built**
-```sh
-docker images
-```
-You should see `harishkumarthesde/content-moderator` in the list.
-
-### **3. Run the Container**
-```sh
 docker run -p 8000:8000 -p 8501:8501 harishkumarthesde/content-moderator:latest
 ```
 
----
-
-## **Pushing the Image to Docker Hub**
-### **1. Log in to Docker Hub**
-```sh
-docker login
-```
-
-### **2. Tag the Image**
-```sh
-docker tag harishkumarthesde/content-moderator:latest harishkumarthesde/content-moderator:latest
-```
-
-### **3. Push the Image**
-```sh
-docker push harishkumarthesde/content-moderator:latest
-```
-
----
-
-## **Pull and Run from Docker Hub**
-### **1. Pull the Image**
-```sh
-docker pull harishkumarthesde/content-moderator:latest
-```
-
-### **2. Run the Container**
-```sh
-docker run -p 8000:8000 -p 8501:8501 harishkumarthesde/content-moderator:latest
-```
-
-Now, the **FastAPI backend** will be accessible at `http://localhost:8000` and the **Streamlit frontend** at `http://localhost:8501`.
-
----
-
-## **Running with Docker Compose**
-Instead of running containers manually, use **Docker Compose** for easier orchestration:
-```sh
+### **4. Using Docker Compose**
+```bash
 docker-compose up --build
 ```
-This will start all services (backend, frontend, and Ollama) automatically.
-
-To stop, use:
-```sh
+To stop:
+```bash
 docker-compose down
 ```
 
 ---
 
+## **Output Screenshots**
+
+### Backend Processing Output
+![Backend Running](Content-moderator-image/images/code.png)
+
+### Streamlit Moderation Interface Output
+![Streamlit UI Output](Content-moderator-image/images/site-streamlit-out.png)
+![Streamlit UI Output](Content-moderator-image/images/site-streamlit.png)
+
+### GitHub Actions Build & Run Output
+![GitHub Actions Build & Run](Content-moderator-image/images/builda.png)
+![GitHub Actions Build & Run](Content-moderator-image/images/buildb.png)
+---
+
 ## **Conclusion**
-You have successfully containerized and deployed the **Content Moderator** application. You can now pull and run it from **Docker Hub** with ease.
+You have successfully set up and deployed the **Cybersecurity Content Moderator**, both with and without containerization. You can now pull and run it from **Docker Hub** or run it manually.
 
 Happy coding! 🚀
 
-## License
-
+## **License**
 This project is licensed under the **MIT License**.
 
-## Author
-
+## **Author**
 - **Harish Kumar S**
 - GitHub: [Harish-nika](https://github.com/Harish-nika)
-- Email: [harishkumar56278@gmail.com](mailto\:harishkumar56278@gmail.com)
-- portfolio: [Harish Kumar S - AI ML Engineer](https://harish-nika.github.io/)
-
+- Email: [harishkumar56278@gmail.com](mailto:harishkumar56278@gmail.com)
+- Portfolio: [Harish Kumar S - AI ML Engineer](https://harish-nika.github.io/)
 
