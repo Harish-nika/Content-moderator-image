@@ -3,7 +3,7 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - main  # Runs when code is pushed to the main branch
+      - main
   pull_request:
     branches:
       - main
@@ -19,9 +19,7 @@ jobs:
     - name: Get Latest Tag and Generate New Version
       id: versioning
       run: |
-        # Fetch all tags
         git fetch --tags
-        # Get latest tag (or default to v1.0.0 if none exist)
         LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
         if [ -z "$LATEST_TAG" ]; then
           NEW_TAG="v1.0.0"
@@ -53,3 +51,5 @@ jobs:
         git config --global user.name "harish-nika"
         git tag ${{ env.NEW_TAG }}
         git push origin ${{ env.NEW_TAG }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}  # Use the GitHub token for authentication
