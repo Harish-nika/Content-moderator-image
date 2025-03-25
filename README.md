@@ -275,8 +275,8 @@ on:
     branches:
       - main
     tags:
-      - 'v*'  # Trigger build only when a version tag like v1.0.1 is pushed to main
-  workflow_dispatch:  # Allow manual trigger
+      - 'v*'  # Trigger build on version tags (e.g., v1.0.1)
+  workflow_dispatch:  # Allow manual execution
 
 jobs:
   build-and-push:
@@ -285,6 +285,8 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history to properly detect tags
 
     - name: Get Latest Tag and Generate New Version
       id: versioning
@@ -297,7 +299,7 @@ jobs:
           NEW_TAG=$(echo "$LATEST_TAG" | awk -F. -v OFS=. '{ $NF += 1 ; print }')
         fi
         echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
-        echo "New version: $NEW_TAG"
+        echo "Generated new version: $NEW_TAG"
 
     - name: Log in to Docker Hub
       uses: docker/login-action@v3
@@ -305,9 +307,9 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build Docker Image (Using Correct Dockerfile Path)
+    - name: Build Docker Image
       run: |
-        docker build -t harishkumarthesde/content-moderator:latest -f docker/Dockerfile .
+        docker build -t harishkumarthesde/content-moderator:latest -f Dockerfile .
         docker tag harishkumarthesde/content-moderator:latest harishkumarthesde/content-moderator:${{ env.NEW_TAG }}
 
     - name: Push Docker Image
@@ -320,11 +322,12 @@ jobs:
       run: |
         git config --global user.email "harishkumar56278@gmail.com"
         git config --global user.name "harish-nika"
-        git fetch --tags
-        git tag ${{ env.NEW_TAG }}
-        git push origin ${{ env.NEW_TAG }}
+        git tag -a ${{ env.NEW_TAG }} -m "Release ${{ env.NEW_TAG }}"
+        git push --force origin ${{ env.NEW_TAG }}
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub’s built-in token
+        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}  # Use a personal access token (PAT)
+
+
 
 
 ```
