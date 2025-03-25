@@ -52,7 +52,7 @@ jobs:
       run: |
         git config --global user.email "harishkumar56278@gmail.com"
         git config --global user.name "harish-nika"
-        git tag ${{ env.NEW_TAG }}
-        git push origin ${{ env.NEW_TAG }}
+        git tag -a ${{ env.NEW_TAG }} -m "Release ${{ env.NEW_TAG }}"
+        git push --force origin ${{ env.NEW_TAG }}
       env:
         GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}  # Use a personal access token (PAT)
