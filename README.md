@@ -119,6 +119,89 @@ Enter your **Docker Hub password** when prompted.
 ```bash
 docker pull harishkumarthesde/content-moderator:latest
 ```
+## Note 
+This repository contains the Content Moderator system, which is designed for detecting harmful content. The system runs inside a Docker container and supports GPU acceleration.
+
+## Prerequisites
+- Might be slow based on your GPU Specs
+- Docker or Podman installed on your system
+- NVIDIA GPU (if using GPU acceleration)
+- Proper NVIDIA drivers and CUDA installed
+- Access to the container image: `harishkumarthesde/content-moderator:latest`
+
+## Running the Container
+### 1️⃣ Stop & Remove Existing Container (If Running)
+If a container with the same name already exists, stop and remove it before running a new one:
+```bash
+# Stop the existing container
+docker stop content-moderator-container
+
+# Remove the existing container
+docker rm content-moderator-container
+```
+
+### 2️⃣ Run the Container with GPU Support
+To start the content moderator with GPU acceleration, run:
+```bash
+docker run --gpus all -p 8000:8000 -p 8501:8501 --name content-moderator-container harishkumarthesde/content-moderator:latest
+```
+
+### 3️⃣ Alternative: Use `--replace` with Podman
+If using Podman, you can replace an existing container using:
+```bash
+docker run --replace --gpus all -p 8000:8000 -p 8501:8501 --name content-moderator-container harishkumarthesde/content-moderator:latest
+```
+
+## Accessing the Application
+- **FastAPI Server**: Runs on `http://localhost:8000`
+- **Streamlit UI**: Accessible at `http://localhost:8501`
+
+## Viewing Logs
+To check logs of the running container:
+```bash
+docker logs -f content-moderator-container
+```
+
+## Stopping the Container
+To stop the running container:
+```bash
+docker stop content-moderator-container
+```
+
+## Removing the Container
+To remove the container completely:
+```bash
+docker rm content-moderator-container
+```
+
+## Updating the Container
+If you update the image and want to redeploy:
+```bash
+# Pull the latest image
+docker pull harishkumarthesde/content-moderator:latest
+
+# Remove the old container
+docker stop content-moderator-container
+docker rm content-moderator-container
+
+# Run the updated container
+docker run --gpus all -p 8000:8000 -p 8501:8501 --name content-moderator-container harishkumarthesde/content-moderator:latest
+```
+
+## Troubleshooting
+- **Check running containers:**
+  ```bash
+  docker ps
+  ```
+- **Check container logs:**
+  ```bash
+  docker logs content-moderator-container
+  ```
+- **Check GPU availability:**
+  ```bash
+  nvidia-smi
+  ```
+
 
 ## Project Structure
 ```
