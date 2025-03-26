@@ -107,6 +107,19 @@ bash /app/frontend/start_frontend.sh
 
 # Content Moderator - Containerization Guide
 
+## Docker Login & Pull Image
+
+### Log in to Docker
+```bash
+docker login -u harishkumarthesde
+```
+Enter your **Docker Hub password** when prompted.
+
+### Pull the Pre-Built Docker Image
+```bash
+docker pull harishkumarthesde/content-moderator:latest
+```
+
 ## Project Structure
 ```
 Content-moderator-image/
