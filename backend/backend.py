@@ -8,9 +8,11 @@ from typing import List
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse
 from sentence_transformers import SentenceTransformer
+from PIL import Image
+import io
 
 # Initialize FastAPI
-app = FastAPI(title="Cybersecurity Content Moderator API")
+app = FastAPI(title="Cybersecurity Content Moderator ")
 
 # Load Sentence Transformer model for embeddings
 embedding_model = SentenceTransformer("paraphrase-MiniLM-L6-v2")
@@ -21,31 +23,14 @@ faiss_index = faiss.IndexFlatL2(dimension)
 text_chunks = []  # Store original text chunks
 chunk_id_map = {}  # Map FAISS index IDs to text chunks
 
-# Ollama Model
-#OLLAMA_MODEL = "cyber-moderator-G3:27b"
-OLLAMA_MODEL = "cyber-moderator-Wlm:7b"
+# Ollama Models
+TEXT_MODEL = "cybersecurity-contentmoderator-wizardlm7b"
+VISION_MODEL = "cybersecurity-contentmoderator-G3"
 
-# ---- TEXT CHUNKING FUNCTION ----
-def chunk_text(text: str, chunk_size: int = 300) -> List[str]:
-    """Splits text into smaller chunks."""
-    paragraphs = text.split("\n")
-    chunks = []
-    current_chunk = ""
+def chunk_text(text: str) -> List[str]:
+    """Splits text into chunks at sentence level (using '.')"""
+    return [sentence.strip() for sentence in text.split(".") if sentence.strip()]
 
-    for para in paragraphs:
-        if len(current_chunk) + len(para) < chunk_size:
-            current_chunk += " " + para
-        else:
-            chunks.append(current_chunk.strip())
-            current_chunk = para
-
-    if current_chunk:
-        chunks.append(current_chunk.strip())
-
-    return chunks
-
-
-# ---- FUNCTION TO ADD CHUNKS TO FAISS ----
 def add_chunks_to_faiss(chunks: List[str]):
     """Embeds text chunks and stores them in FAISS for fast retrieval."""
     global text_chunks
@@ -55,64 +40,57 @@ def add_chunks_to_faiss(chunks: List[str]):
         chunk_id_map[len(text_chunks)] = chunk
         text_chunks.append(chunk)
 
-
-# ---- API: Upload Text ----
 @app.post("/moderate-text/")
 async def moderate_text(content: str = Form(...)):
-    """Accepts raw text, chunks it, adds to FAISS, and sends to Ollama for moderation."""
+    """Moderates pasted text using the text-based model."""
     chunks = chunk_text(content)
     add_chunks_to_faiss(chunks)
-
     results = []
     for chunk in chunks:
-        response = ollama.chat(
-            model=OLLAMA_MODEL,
-            messages=[{"role": "user", "content": chunk}]
-        )
+        response = ollama.chat(model=TEXT_MODEL, messages=[{"role": "user", "content": chunk}])
         results.append({"chunk": chunk, "moderation_result": response["message"]["content"]})
-
     return JSONResponse({"moderation_results": results})
 
+@app.post("/moderate-image/")
+async def moderate_image(file: UploadFile = File(...)):
+    """Processes an uploaded image using the vision-based model."""
+    image_data = await file.read()
+    image = Image.open(io.BytesIO(image_data))
+    response = ollama.chat(model=VISION_MODEL, messages=[{"role": "user", "content": "Analyze this image for cybersecurity threats."}], images=[image])
+    return JSONResponse({"moderation_result": response["message"]["content"]})
 
-# ---- API: Upload PDF ----
 @app.post("/moderate-pdf/")
 async def moderate_pdf(file: UploadFile = File(...)):
-    """Extracts text from PDF, chunks it, adds to FAISS, and sends chunks to Ollama."""
+    """Processes a PDF by extracting text and images, using both models."""
     pdf_text = ""
+    images = []
     doc = fitz.open(stream=await file.read(), filetype="pdf")
-
     for page in doc:
         pdf_text += page.get_text("text") + "\n"
+        img_list = page.get_images(full=True)
+        for img_index, img in enumerate(img_list):
+            xref = img[0]
+            base_image = doc.extract_image(xref)
+            img_bytes = base_image["image"]
+            images.append(Image.open(io.BytesIO(img_bytes)))
+    
+    # Process text using TEXT_MODEL
+    text_chunks = chunk_text(pdf_text)
+    add_chunks_to_faiss(text_chunks)
+    text_results = []
+    for chunk in text_chunks:
+        response = ollama.chat(model=TEXT_MODEL, messages=[{"role": "user", "content": chunk}])
+        text_results.append({"chunk": chunk, "moderation_result": response["message"]["content"]})
+    
+    # Process images using VISION_MODEL
+    image_results = []
+    for img in images:
+        response = ollama.chat(model=VISION_MODEL, messages=[{"role": "user", "content": "Analyze this image for cybersecurity threats."}], images=[img])
+        image_results.append({"moderation_result": response["message"]["content"]})
+    
+    return JSONResponse({"text_moderation": text_results, "image_moderation": image_results})
 
-    chunks = chunk_text(pdf_text)
-    add_chunks_to_faiss(chunks)
-
-    results = []
-    for chunk in chunks:
-        response = ollama.chat(
-            model=OLLAMA_MODEL,
-            messages=[{"role": "user", "content": chunk}]
-        )
-        results.append({"chunk": chunk, "moderation_result": response["message"]["content"]})
-
-    return JSONResponse({"moderation_results": results})
-
-
-# ---- API: Retrieve Chunks ----
-@app.get("/retrieve-similar/")
-async def retrieve_chunks(query: str):
-    """Finds relevant text chunks using FAISS."""
-    if len(text_chunks) == 0:
-        raise HTTPException(status_code=400, detail="No data available for similarity search.")
-
-    query_embedding = embedding_model.encode([query])
-    _, indices = faiss_index.search(np.array(query_embedding, dtype=np.float32), k=5)
-
-    retrieved_chunks = [chunk_id_map[idx] for idx in indices[0] if idx < len(text_chunks)]
-
-    return JSONResponse({"similar_chunks": retrieved_chunks})
-
-
-# ---- Run FastAPI ----
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    
+#uvicorn backend:app --host 0.0.0.0 --port 8000 --reload
