@@ -60,20 +60,34 @@ def save_image(img_data: bytes, filename: str) -> str:
         img_file.write(img_data)
     return path
 
+def warm_up_model():
+    """Warm up the Ollama models to avoid initialization delays."""
+    try:
+        ollama.chat(model=TEXT_MODEL, messages=[{"role": "user", "content": "ping"}])
+        ollama.generate(model=VISION_MODEL, prompt="ping", images=[])
+    except Exception as e:
+        raise Exception(f"Error during model warm-up: {str(e)}")
+
+# Call the warm-up function before starting the app
+warm_up_model()
+
 @app.post("/moderate-text/")
 async def moderate_text(content: str = Form(...)):
     """Moderates pasted text using the text-based model."""
-    chunks = chunk_text(content)
-    add_chunks_to_faiss(chunks)
-    
-    results = []
-    for chunk in chunks:
-        response = ollama.chat(model=TEXT_MODEL, messages=[{"role": "user", "content": chunk}])
-        moderation_result = response.get("message", {}).get("content", "No response received.")
+    try:
+        chunks = chunk_text(content)
+        add_chunks_to_faiss(chunks)
         
-        results.append({"chunk": chunk, "moderation_result": moderation_result})
-    
-    return JSONResponse({"moderation_results": results})
+        results = []
+        for chunk in chunks:
+            response = ollama.chat(model=TEXT_MODEL, messages=[{"role": "user", "content": chunk}])
+            moderation_result = response.get("message", {}).get("content", "No response received.")
+            
+            results.append({"chunk": chunk, "moderation_result": moderation_result})
+        
+        return JSONResponse({"moderation_results": results})
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 @app.post("/moderate-image/")
 async def moderate_image(file: UploadFile = File(...)):
@@ -104,7 +118,7 @@ async def moderate_pdf(file: UploadFile = File(...)):
         # Extract text paragraphs & images
         for page_num, page in enumerate(doc):
             text_chunks.extend(chunk_text(page.get_text("text")))
-            
+
             for img_index, img in enumerate(page.get_images(full=True)):
                 xref = img[0]
                 base_image = doc.extract_image(xref)
@@ -150,4 +164,4 @@ async def moderate_pdf(file: UploadFile = File(...)):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="127.0.0.1", port=8000)

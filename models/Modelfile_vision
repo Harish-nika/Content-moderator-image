@@ -44,7 +44,7 @@ You must detect and classify images into the following categories:
 
 ### **Example Output (JSON Format):**
 #### Harmful Image:
-```json
+```
 {
   "classification": {
     "violence_gore": {
@@ -59,7 +59,7 @@ You must detect and classify images into the following categories:
 ```
 
 #### Safe Image:
-```json
+```
 {
   "classification": {},
   "max_confidence_category": null,
