@@ -6,7 +6,7 @@ This project is a **Cybersecurity Content Moderator** that uses an **Ollama LLM 
 ---
 
 ## Features
-- ✅ **Text & PDF Moderation**: Supports both plain text and PDF files.
+- ✅ **Text,image  & PDF Moderation**: Supports both plain text ,image and PDF files.
 - 🤖 **AI-Powered Content Analysis**: Uses a custom-trained Ollama model.
 - 🔍 **Semantic Search**: Retrieves similar content using **FAISS** and **Sentence Transformers**.
 - 🖥 **User-Friendly UI**: Built with Streamlit.
@@ -16,9 +16,9 @@ This project is a **Cybersecurity Content Moderator** that uses an **Ollama LLM 
 ## API Endpoints
 | Endpoint         | Method | Description |
 |-----------------|--------|-------------|
-| `/upload-text/` | POST   | Accepts text for moderation |
+| `/upload-text or upload-image/` | POST   | Accepts text,image for moderation |
 | `/upload-pdf/`  | POST   | Accepts a PDF file for analysis |
-| `/retrieve-chunks/` | GET | Retrieves similar content |
+
 
 ---
 
@@ -310,6 +310,8 @@ docker-compose down
 ```sh
 #!/bin/bash
 
+#!/bin/bash
+
 echo "🔄 Starting Ollama server..."
 ollama serve &
 
@@ -318,15 +320,18 @@ sleep 10  # Ensure Ollama is running before pulling models
 
 echo "📥 Pulling base model..."
 ollama pull wizardlm2:7b
+ollama pull gemma3:12b 
 
 echo "🛠 Creating custom moderation model..."
 ollama create cyber-moderator-Wlm:7b -f /app/models/Modelfile  # Absolute path
+ollama create cyber-moderator-G3:12b  -f /app/models/Modelfile_vision
 
 echo "🚀 Starting Backend..."
 bash /app/backend/start.sh &
 
 echo "🎨 Starting Frontend..."
 bash /app/frontend/start_frontend.sh
+
 
 
 ```
@@ -435,10 +440,13 @@ jobs:
 ### Backend Processing Output
 ![Backend Running](images/code.png)
 
-### Streamlit Moderation Interface Output
-![Streamlit UI Output](images/site-streamlit-out.png)
-![Streamlit UI Output](images/site-streamlit.png)
-
+### Streamlit Moderation TEXT MODEL Interface Output
+![Text Model Output](images/site-streamlit-out.png)
+![Text Model Output](images/site-streamlit.png)
+### Streamlit Moderation TEXT MODEL Interface Output
+![Vision Model Output(real guns and drugs):](images/image.png)
+![Vision Model Output(Child with Toy gun)](images/image-1.png)
+![Vision Model Output(Man threaten woman )](image-2.png)
 ### GitHub Actions Build & Run Output
 ![GitHub Actions Build & Run](images/builda.png)
 ![GitHub Actions Build & Run](images/buildb.png)

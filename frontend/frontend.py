@@ -87,7 +87,7 @@ elif input_type == "Upload PDF":
                         image_response = requests.get(f"{API_URL}/{res['image_path']}")  # Fetch image
                         if image_response.status_code == 200:
                             img = Image.open(io.BytesIO(image_response.content))
-                            st.image(img, caption=res["image_path"], use_column_width=True)
+                            st.image(img, caption=res["image_path"], use_column_width=False)
                         else:
                             st.warning(f"⚠️ Could not fetch image: {res['image_path']}")
             else:
@@ -111,8 +111,18 @@ elif input_type == "Upload Image":
             else:
                 st.error("⚠️ Missing 'moderation_result' in API response.")
             
-            # Display Uploaded Image
+            # Open image using PIL
             image = Image.open(uploaded_image)
-            st.image(image, caption="Uploaded Image", use_column_width=True)
+
+            # Resize image while maintaining aspect ratio
+            max_width = 400  # Adjust as needed
+            original_width, original_height = image.size
+            aspect_ratio = original_height / original_width
+            new_height = int(max_width * aspect_ratio)  # Maintain aspect ratio
+
+            image = image.resize((max_width, new_height))  # Resize while preserving aspect ratio
+
+            # Display resized image
+            st.image(image, caption="Uploaded Image", use_column_width=False)
         else:
             st.error("Failed to get image moderation response.")
