@@ -1,5 +1,5 @@
 # Use WizardLM 2 (7B) as the base model
-FROM wizardlm2 
+FROM wizardlm2:7b 
 
 # Set model parameters for content moderation
 PARAMETER temperature 0.2      

@@ -1,5 +1,5 @@
-# Use LLaVA as the base model for image moderation
-FROM gemma3
+# Used Gemma as the base model for image moderation
+FROM gemma3:27b  
 
 # Set model parameters
 PARAMETER temperature 0.2      
